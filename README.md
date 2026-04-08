@@ -137,11 +137,6 @@ All CSS is in the `<style>` block at the top of `index.html`. Key variables are 
 | Name | Role |
 |------|------|
 | Musonda Kaoma  | Developer / Designer |
-| Ephraim Ndana  | Developer|
-| Chishimba Thole| Designer |
-| Shameel Sheriff| Designer |
-| Joshua Mwanza   | Tester / Report |
-| Aristote Katai  | Presentation |
 
 ---
 
