@@ -112,37 +112,6 @@ All CSS is in the `<style>` block at the top of `index.html`. Key variables are 
 
 ---
 
-## 🤝 Working as a group on GitHub
-
-### First-time setup
-```bash
-# 1. One person creates the repo on GitHub, others fork or clone it
-git clone https://github.com/YOUR-USERNAME/campus-events.git
-cd campus-events
-
-# 2. Create your own branch before making changes
-git checkout -b feature/your-name-changes
-```
-
-### Daily workflow
-```bash
-# Before you start — pull the latest changes
-git pull origin main
-
-# Make your edits to index.html, then:
-git add index.html
-git commit -m "Add: feedback star animation"
-git push origin feature/your-name-changes
-
-# Then open a Pull Request on GitHub to merge into main
-```
-
-### Suggested branch names
-- `feature/add-event-categories` — adding new features
-- `fix/registration-validation` — fixing bugs
-- `style/update-colors` — design changes
-
----
 
 ## 🏛️ HCI Principles applied
 
