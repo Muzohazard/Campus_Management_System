@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CampusEvents — Campus Event Management System</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f5f5f4;
+      --bg-tertiary: #f0efeb;
+      --text-primary: #1a1a18;
+      --text-secondary: #6b6b66;
+      --text-tertiary: #9b9b96;
+      --border: rgba(0,0,0,0.12);
+      --border-md: rgba(0,0,0,0.22);
+      --blue: #185FA5;
+      --blue-light: #E6F1FB;
+      --green: #3B6D11;
+      --green-light: #EAF3DE;
+      --amber: #854F0B;
+      --amber-light: #FAEEDA;
+      --purple: #534AB7;
+      --purple-light: #EEEDFE;
+      --red: #A32D2D;
+      --star: #EF9F27;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --font: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-primary: #1c1c1a;
+        --bg-secondary: #242422;
+        --bg-tertiary: #2c2c2a;
+        --text-primary: #f0ede8;
+        --text-secondary: #a8a8a0;
+        --text-tertiary: #6b6b66;
+        --border: rgba(255,255,255,0.1);
+        --border-md: rgba(255,255,255,0.2);
+        --blue-light: #0c2d4a;
+        --green-light: #1a2e0a;
+        --amber-light: #2e1e05;
+        --purple-light: #1e1b40;
+      }
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+
+    /* ── Navigation ── */
+    nav {
+      background: var(--bg-primary);
+      border-bottom: 0.5px solid var(--border);
+      padding: 0 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 52px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-brand {
+      font-size: 15px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav-brand .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--blue);
+    }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-btn {
+      background: none;
+      border: none;
+      font-size: 13px;
+      padding: 6px 10px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: all .15s;
+      font-family: var(--font);
+    }
+    .nav-btn:hover { background: var(--bg-secondary); color: var(--text-primary); }
+    .nav-btn.active { background: var(--bg-secondary); color: var(--text-primary); font-weight: 500; }
+
+    /* ── Screens ── */
+    .screen { display: none; padding-bottom: 2rem; }
+    .screen.active { display: block; }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(135deg, #042C53 0%, #185FA5 100%);
+      padding: 2rem 1.25rem 2.5rem;
+      color: white;
+    }
+    .hero h1 { font-size: 22px; font-weight: 500; margin-bottom: 6px; }
+    .hero p { font-size: 14px; opacity: .8; }
+    .hero-small { padding: 1.5rem 1.25rem; }
+    .search-bar { margin-top: 1rem; display: flex; gap: 8px; }
+    .search-bar input {
+      flex: 1;
+      border: none;
+      border-radius: var(--radius-md);
+      padding: 9px 14px;
+      font-size: 14px;
+      background: rgba(255,255,255,.15);
+      color: white;
+      outline: none;
+      font-family: var(--font);
+    }
+    .search-bar input::placeholder { color: rgba(255,255,255,.6); }
+    .search-bar button {
+      background: white;
+      color: var(--blue);
+      border: none;
+      border-radius: var(--radius-md);
+      padding: 9px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: var(--font);
+    }
+
+    /* ── Filters ── */
+    .filters { display: flex; gap: 8px; padding: 1rem 1rem 0; flex-wrap: wrap; }
+    .filter-btn {
+      border: 0.5px solid var(--border);
+      background: var(--bg-primary);
+      color: var(--text-secondary);
+      font-size: 12px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all .15s;
+      font-family: var(--font);
+    }
+    .filter-btn.active { background: var(--blue-light); border-color: var(--blue); color: var(--blue); }
+
+    /* ── Event Cards ── */
+    .events-grid { padding: 1rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+    .event-card {
+      background: var(--bg-primary);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color .15s, transform .15s;
+    }
+    .event-card:hover { border-color: var(--border-md); transform: translateY(-1px); }
+    .event-banner { height: 80px; display: flex; align-items: center; justify-content: center; font-size: 32px; }
+    .event-body { padding: 12px; }
+    .event-tag {
+      font-size: 11px; font-weight: 500;
+      padding: 3px 8px; border-radius: 10px;
+      display: inline-block; margin-bottom: 6px;
+    }
+    .tag-workshop { background: var(--blue-light); color: var(--blue); }
+    .tag-seminar  { background: var(--green-light); color: var(--green); }
+    .tag-sports   { background: var(--amber-light); color: var(--amber); }
+    .tag-club     { background: var(--purple-light); color: var(--purple); }
+    .event-title  { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+    .event-meta   { font-size: 12px; color: var(--text-secondary); display: flex; gap: 12px; flex-wrap: wrap; }
+    .event-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 10px; padding-top: 10px;
+      border-top: 0.5px solid var(--border);
+    }
+    .seats-badge { font-size: 12px; color: var(--text-secondary); }
+
+    /* ── Buttons ── */
+    .btn-primary {
+      background: var(--blue); color: white;
+      border: none; border-radius: var(--radius-md);
+      padding: 8px 16px; font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: background .15s;
+      font-family: var(--font);
+    }
+    .btn-primary:hover { background: #0C447C; }
+    .btn-primary:disabled { background: var(--text-tertiary); cursor: not-allowed; }
+    .btn-secondary {
+      background: none;
+      border: 0.5px solid var(--border-md);
+      color: var(--text-primary);
+      border-radius: var(--radius-md);
+      padding: 8px 16px; font-size: 13px;
+      cursor: pointer; transition: all .15s;
+      font-family: var(--font);
+    }
+    .btn-secondary:hover { background: var(--bg-secondary); }
+
+    /* ── Page header ── */
+    .page-header {
+      padding: 1.25rem 1rem 0;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .back-btn {
+      background: none;
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 6px 12px; font-size: 13px;
+      cursor: pointer; color: var(--text-secondary);
+      font-family: var(--font);
+    }
+    .back-btn:hover { background: var(--bg-secondary); }
+
+    /* ── Event Detail ── */
+    .detail-banner {
+      height: 120px; display: flex; align-items: center;
+      justify-content: center; font-size: 48px;
+      border-radius: var(--radius-lg); margin: 1rem;
+      border: 0.5px solid var(--border);
+    }
+    .detail-section { padding: 0 1rem; margin-bottom: 1rem; }
+    .detail-section h2 { font-size: 18px; font-weight: 500; margin-bottom: 4px; }
+    .detail-section p { font-size: 14px; color: var(--text-secondary); line-height: 1.7; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 1rem; }
+    .info-item { background: var(--bg-secondary); border-radius: var(--radius-md); padding: 10px 12px; }
+    .info-item .label { font-size: 11px; color: var(--text-secondary); margin-bottom: 3px; }
+    .info-item .value { font-size: 13px; font-weight: 500; }
+
+    /* ── Forms ── */
+    .form-section {
+      margin: 0 1rem 1rem;
+      background: var(--bg-primary);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+    }
+    .form-section h3 { font-size: 16px; font-weight: 500; margin-bottom: 1rem; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 13px; color: var(--text-secondary); margin-bottom: 5px; }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 9px 12px;
+      font-size: 14px;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color .15s;
+      font-family: var(--font);
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus { border-color: var(--blue); }
+    .checkbox-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
+    .checkbox-row input[type=checkbox] { margin-top: 2px; cursor: pointer; }
+    .checkbox-row label { font-size: 13px; color: var(--text-secondary); }
+    .error-msg { font-size: 12px; color: var(--red); margin-top: 3px; display: none; }
+
+    /* ── Success ── */
+    .success-card {
+      background: var(--green-light);
+      border: 0.5px solid rgba(59,109,17,.3);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem; text-align: center; margin: 1rem;
+    }
+    .success-card .icon { font-size: 36px; margin-bottom: 10px; }
+    .success-card h3 { font-size: 18px; font-weight: 500; color: var(--green); margin-bottom: 6px; }
+    .success-card p { font-size: 14px; color: var(--text-secondary); }
+
+    /* ── Event preview strip ── */
+    .event-strip {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-md);
+      padding: 12px; margin: 0 1rem 1.25rem;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .event-strip h4 { font-size: 14px; font-weight: 500; }
+    .event-strip p  { font-size: 12px; color: var(--text-secondary); }
+
+    /* ── Stars ── */
+    .star-row { display: flex; gap: 6px; margin-top: 6px; }
+    .star { font-size: 26px; cursor: pointer; color: var(--border-md); transition: color .1s; user-select: none; }
+    .star.filled { color: var(--star); }
+    .rating-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; height: 16px; }
+    .aspect-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .aspect-row .name { font-size: 13px; min-width: 110px; color: var(--text-secondary); }
+    .mini-stars { display: flex; gap: 3px; }
+    .mini-star { font-size: 18px; cursor: pointer; color: var(--border-md); user-select: none; }
+    .mini-star.filled { color: var(--star); }
+
+    /* ── My Events ── */
+    .tabs { display: flex; padding: 0 1rem; margin-top: 1rem; border-bottom: 0.5px solid var(--border); }
+    .tab { padding: 8px 14px; font-size: 13px; cursor: pointer; color: var(--text-secondary); border-bottom: 2px solid transparent; transition: all .15s; }
+    .tab.active { color: var(--blue); border-bottom-color: var(--blue); font-weight: 500; }
+    .list-item {
+      background: var(--bg-primary);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 12px; margin: 0 1rem 10px;
+      display: flex; align-items: center; gap: 12px;
+      cursor: pointer; transition: border-color .15s;
+    }
+    .list-item:hover { border-color: var(--border-md); }
+    .list-item .icon { font-size: 24px; }
+    .list-item .info { flex: 1; }
+    .list-item .info h4 { font-size: 14px; font-weight: 500; }
+    .list-item .info p  { font-size: 12px; color: var(--text-secondary); }
+    .status-badge { font-size: 11px; padding: 3px 8px; border-radius: 10px; font-weight: 500; white-space: nowrap; }
+    .s-registered { background: var(--green-light); color: var(--green); }
+    .s-pending    { background: var(--amber-light); color: var(--amber); }
+
+    /* ── Section title ── */
+    .section-title { font-size: 16px; font-weight: 500; padding: 1.25rem 1rem 0; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 1.25rem; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #2C2C2A; color: white;
+      padding: 10px 20px; border-radius: var(--radius-md);
+      font-size: 13px; transition: transform .3s;
+      z-index: 200; pointer-events: none;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── Empty state ── */
+    .empty { padding: 2.5rem; text-align: center; color: var(--text-secondary); font-size: 14px; }
+
+    /* ── Responsive ── */
+    @media (max-width: 480px) {
+      .events-grid { grid-template-columns: 1fr; }
+      .info-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════
+     NAVIGATION
+════════════════════════════════════════ -->
+<nav>
+  <div class="nav-brand"><div class="dot"></div>CampusEvents</div>
+  <div class="nav-links">
+    <button class="nav-btn active" onclick="showScreen('home')">Home</button>
+    <button class="nav-btn" onclick="showScreen('my-events')">My Events</button>
+    <button class="nav-btn" onclick="showScreen('feedback-list')">Feedback</button>
+  </div>
+</nav>
+
+<!-- ════════════════════════════════════════
+     SCREEN: HOME
+════════════════════════════════════════ -->
+<div id="screen-home" class="screen active">
+  <div class="hero">
+    <h1>Campus Events</h1>
+    <p>Discover workshops, seminars, sports &amp; club events</p>
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search events..." oninput="filterEvents()" />
+      <button onclick="filterEvents()">Search</button>
+    </div>
+  </div>
+  <div class="filters">
+    <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+    <button class="filter-btn" onclick="setFilter('workshop', this)">Workshops</button>
+    <button class="filter-btn" onclick="setFilter('seminar', this)">Seminars</button>
+    <button class="filter-btn" onclick="setFilter('sports', this)">Sports</button>
+    <button class="filter-btn" onclick="setFilter('club', this)">Club Events</button>
+  </div>
+  <div class="events-grid" id="eventsGrid"></div>
+</div>
+
+<!-- ════════════════════════════════════════
+     SCREEN: EVENT DETAIL
+════════════════════════════════════════ -->
+<div id="screen-event-detail" class="screen">
+  <div class="page-header">
+    <button class="back-btn" onclick="showScreen('home')">← Back</button>
+    <span id="detail-breadcrumb" style="font-size:13px;color:var(--text-secondary)"></span>
+  </div>
+  <div id="detail-content"></div>
+</div>
+
+<!-- ════════════════════════════════════════
+     SCREEN: REGISTRATION
+════════════════════════════════════════ -->
+<div id="screen-register" class="screen">
+  <div class="page-header">
+    <button class="back-btn" id="reg-back-btn">← Back</button>
+    <span style="font-size:13px;color:var(--text-secondary)">Registration</span>
+  </div>
+  <div id="register-content"></div>
+</div>
+
+<!-- ════════════════════════════════════════
+     SCREEN: REGISTRATION SUCCESS
+════════════════════════════════════════ -->
+<div id="screen-success" class="screen">
+  <div style="padding:1rem">
+    <div class="success-card">
+      <div class="icon">🎉</div>
+      <h3>Registered!</h3>
+      <p id="success-message">You're all set. Check your email for confirmation.</p>
+    </div>
+    <div style="display:flex;gap:10px;padding:0">
+      <button class="btn-secondary" style="flex:1" onclick="showScreen('home')">Browse More</button>
+      <button class="btn-primary" style="flex:1" onclick="showScreen('my-events')">My Events</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     SCREEN: FEEDBACK LIST
+════════════════════════════════════════ -->
+<div id="screen-feedback-list" class="screen">
+  <div class="hero hero-small">
+    <h1 style="font-size:18px">Rate &amp; Review</h1>
+    <p>Your feedback helps improve future events</p>
+  </div>
+  <p class="section-title">Events you attended</p>
+  <div id="feedback-list-content" style="margin-top:1rem"></div>
+</div>
+
+<!-- ════════════════════════════════════════
+     SCREEN: FEEDBACK FORM
+════════════════════════════════════════ -->
+<div id="screen-feedback-form" class="screen">
+  <div class="page-header">
+    <button class="back-btn" onclick="showScreen('feedback-list')">← Back</button>
+    <span style="font-size:13px;color:var(--text-secondary)">Write Review</span>
+  </div>
+  <div id="feedback-form-content"></div>
+</div>
+
+<!-- ════════════════════════════════════════
+     SCREEN: MY EVENTS
+════════════════════════════════════════ -->
+<div id="screen-my-events" class="screen">
+  <div class="hero hero-small">
+    <h1 style="font-size:18px">My Events</h1>
+    <p>Your registered and past events</p>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="myEventsTab('upcoming', this)">Upcoming</div>
+    <div class="tab" onclick="myEventsTab('past', this)">Past</div>
+  </div>
+  <div id="my-events-content" style="margin-top:1rem"></div>
+</div>
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
+
+<!-- ════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════ -->
+<script>
+  // ── Data ──────────────────────────────────────────────────────────────────
+  const events = [
+    {
+      id: 1, title: "Python for Data Science Workshop",
+      type: "workshop", icon: "🐍",
+      date: "Sat, 12 Apr 2026", time: "09:00 – 12:00",
+      venue: "ICT Lab 3, Block B", seats: 12, total: 30,
+      desc: "A hands-on 3-hour workshop covering Python basics, pandas, and matplotlib for data analysis. No prior experience needed.",
+      facilitator: "Dr. Mwale Banda", color: "#dbeafe"
+    },
+    {
+      id: 2, title: "Career Fair Seminar",
+      type: "seminar", icon: "💼",
+      date: "Mon, 14 Apr 2026", time: "14:00 – 16:00",
+      venue: "Main Auditorium", seats: 5, total: 200,
+      desc: "Industry leaders from banking, tech, and NGO sectors share career advice and internship opportunities.",
+      facilitator: "Student Services Dept.", color: "#dcfce7"
+    },
+    {
+      id: 3, title: "Inter-Faculty Football Tournament",
+      type: "sports", icon: "⚽",
+      date: "Sat, 19 Apr 2026", time: "08:00 – 17:00",
+      venue: "Sports Complex Field A", seats: 40, total: 80,
+      desc: "Annual inter-faculty 5-a-side football competition. Register your team or join as an individual. Prizes for top 3 teams.",
+      facilitator: "Sports & Recreation Club", color: "#fef9c3"
+    },
+    {
+      id: 4, title: "Entrepreneurship Club Pitch Night",
+      type: "club", icon: "💡",
+      date: "Fri, 25 Apr 2026", time: "18:00 – 20:00",
+      venue: "Business School Boardroom", seats: 20, total: 50,
+      desc: "Students pitch their startup ideas to a panel of judges. Observers welcome. Refreshments provided.",
+      facilitator: "Entrepreneurship Society", color: "#ede9fe"
+    },
+    {
+      id: 5, title: "Academic Writing Masterclass",
+      type: "workshop", icon: "✍️",
+      date: "Wed, 23 Apr 2026", time: "10:00 – 12:00",
+      venue: "Library Seminar Room", seats: 8, total: 25,
+      desc: "Improve your research paper and dissertation writing skills. Covers structure, citation, and academic language.",
+      facilitator: "Prof. Ngosa Chanda", color: "#dbeafe"
+    },
+    {
+      id: 6, title: "Mental Health Awareness Seminar",
+      type: "seminar", icon: "🧠",
+      date: "Thu, 24 Apr 2026", time: "13:00 – 15:00",
+      venue: "Student Union Hall", seats: 0, total: 100,
+      desc: "A panel discussion on student mental wellness, coping strategies, and campus support services.",
+      facilitator: "Student Wellness Center", color: "#dcfce7"
+    },
+  ];
+
+  const pastEvents = [
+    { id: 7, title: "Photography Club Showcase", type: "club", icon: "📷", date: "Sat, 5 Apr 2026", time: "14:00 – 17:00", venue: "Arts Gallery", seats: 0, total: 60, desc: "", color: "#ede9fe" },
+    { id: 8, title: "Basketball Open Day", type: "sports", icon: "🏀", date: "Fri, 4 Apr 2026", time: "09:00 – 13:00", venue: "Sports Complex Court", seats: 0, total: 40, desc: "", color: "#fef9c3" },
+  ];
+
+  // State
+  let currentFilter = 'all';
+  let currentEvent  = null;
+  let myRegistered  = [1, 3];  // IDs of events user has registered for
+  let myPast        = [7, 8];  // IDs of past events user attended
+  const ratings     = {};      // { eventId: { overall, content, org, venue, enjoy, improve, recommend } }
+
+  const starLabels = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+
+  // ── Render: Event Grid ────────────────────────────────────────────────────
+  function renderEvents() {
+    const q = (document.getElementById('searchInput').value || '').toLowerCase();
+    const grid = document.getElementById('eventsGrid');
+    const filtered = events.filter(e => {
+      const matchFilter = currentFilter === 'all' || e.type === currentFilter;
+      const matchSearch = !q || e.title.toLowerCase().includes(q) || e.type.includes(q);
+      return matchFilter && matchSearch;
+    });
+
+    if (filtered.length === 0) {
+      grid.innerHTML = '<div class="empty">No events match your search.</div>';
+      return;
+    }
+
+    grid.innerHTML = filtered.map(e => {
+      const isReg = myRegistered.includes(e.id);
+      const isFull = e.seats === 0;
+      return `
+        <div class="event-card" onclick="openEvent(${e.id})">
+          <div class="event-banner" style="background:${e.color}">${e.icon}</div>
+          <div class="event-body">
+            <span class="event-tag tag-${e.type}">${cap(e.type)}</span>
+            <div class="event-title">${e.title}</div>
+            <div class="event-meta">
+              <span>📅 ${e.date}</span>
+              <span>🕐 ${e.time}</span>
+            </div>
+            <div class="event-footer">
+              <div class="seats-badge">
+                ${isFull
+                  ? '<span style="color:var(--red)">Full</span>'
+                  : `<span style="color:var(--green);font-weight:500">${e.seats}</span> seats left`}
+              </div>
+              <button
+                class="btn-primary"
+                style="font-size:12px;padding:6px 12px"
+                onclick="event.stopPropagation(); openRegister(${e.id})"
+                ${isFull && !isReg ? 'disabled' : ''}
+              >${isReg ? 'Registered ✓' : 'Register'}</button>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function setFilter(f, btn) {
+    currentFilter = f;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderEvents();
+  }
+
+  function filterEvents() { renderEvents(); }
+
+  // ── Event Detail ──────────────────────────────────────────────────────────
+  function openEvent(id) {
+    currentEvent = events.find(e => e.id === id) || pastEvents.find(e => e.id === id);
+    if (!currentEvent) return;
+    const e = currentEvent;
+    const isReg = myRegistered.includes(e.id);
+    const isFull = e.seats === 0;
+
+    document.getElementById('detail-breadcrumb').textContent = cap(e.type);
+    document.getElementById('detail-content').innerHTML = `
+      <div class="detail-banner" style="background:${e.color}">${e.icon}</div>
+      <div class="detail-section">
+        <span class="event-tag tag-${e.type}" style="margin-bottom:8px">${cap(e.type)}</span>
+        <h2>${e.title}</h2>
+        <p style="margin-top:8px">${e.desc}</p>
+      </div>
+      <div class="info-grid">
+        <div class="info-item"><div class="label">Date</div><div class="value">${e.date}</div></div>
+        <div class="info-item"><div class="label">Time</div><div class="value">${e.time}</div></div>
+        <div class="info-item"><div class="label">Venue</div><div class="value">${e.venue}</div></div>
+        <div class="info-item">
+          <div class="label">Seats available</div>
+          <div class="value" style="color:${isFull ? 'var(--red)' : 'var(--green)'}">
+            ${isFull ? 'Full' : e.seats + ' / ' + e.total}
+          </div>
+        </div>
+      </div>
+      <div class="detail-section">
+        <p style="font-size:13px;color:var(--text-secondary)">
+          Facilitated by: <strong style="font-weight:500;color:var(--text-primary)">${e.facilitator}</strong>
+        </p>
+      </div>
+      <div style="padding:0 1rem 1rem;display:flex;gap:10px">
+        ${isReg
+          ? '<button class="btn-secondary" style="flex:1;color:var(--green);border-color:var(--green)">✓ Already Registered</button>'
+          : isFull
+            ? '<button class="btn-secondary" style="flex:1" disabled>Event Full</button>'
+            : `<button class="btn-primary" style="flex:1" onclick="openRegister(${e.id})">Register for this Event</button>`
+        }
+      </div>`;
+    showScreen('event-detail');
+  }
+
+  // ── Registration ──────────────────────────────────────────────────────────
+  function openRegister(id) {
+    currentEvent = events.find(e => e.id === id);
+    if (!currentEvent) return;
+    const e = currentEvent;
+    const isReg = myRegistered.includes(e.id);
+
+    document.getElementById('reg-back-btn').onclick = () => showScreen('event-detail');
+
+    if (isReg) {
+      document.getElementById('register-content').innerHTML = `
+        <div style="padding:1rem">
+          <div class="success-card">
+            <div class="icon">✅</div>
+            <h3>Already Registered</h3>
+            <p>You are registered for <strong>${e.title}</strong> on ${e.date}.</p>
+          </div>
+          <div style="display:flex;gap:10px">
+            <button class="btn-secondary" style="flex:1" onclick="showScreen('home')">Browse Events</button>
+            <button class="btn-primary" style="flex:1" onclick="showScreen('my-events')">My Events</button>
+          </div>
+        </div>`;
+    } else {
+      document.getElementById('register-content').innerHTML = `
+        <div class="event-strip">
+          <div class="icon" style="font-size:24px">${e.icon}</div>
+          <div><h4>${e.title}</h4><p>${e.date} · ${e.time}</p></div>
+        </div>
+        <div class="form-section">
+          <h3>Your Details</h3>
+          <div class="form-group">
+            <label>Full Name *</label>
+            <input type="text" id="reg-name" placeholder="e.g. Chanda Mutale" />
+            <div class="error-msg" id="err-name">Please enter your full name</div>
+          </div>
+          <div class="form-group">
+            <label>Student ID *</label>
+            <input type="text" id="reg-id" placeholder="e.g. 2021140023" />
+            <div class="error-msg" id="err-id">Please enter your student ID</div>
+          </div>
+          <div class="form-group">
+            <label>Email Address *</label>
+            <input type="email" id="reg-email" placeholder="student@university.zm" />
+            <div class="error-msg" id="err-email">Please enter a valid email address</div>
+          </div>
+          <div class="form-group">
+            <label>Programme / Faculty</label>
+            <select id="reg-faculty">
+              <option value="">Select faculty</option>
+              <option>Engineering</option>
+              <option>Natural Sciences</option>
+              <option>Humanities</option>
+              <option>Business</option>
+              <option>Education</option>
+              <option>Medicine</option>
+              <option>Law</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Year of Study</label>
+            <select id="reg-year">
+              <option value="">Select year</option>
+              <option>Year 1</option><option>Year 2</option>
+              <option>Year 3</option><option>Year 4</option><option>Year 5+</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Special requirements (optional)</label>
+            <textarea id="reg-special" rows="2" placeholder="e.g. wheelchair access, dietary needs..."></textarea>
+          </div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="reg-consent" />
+            <label for="reg-consent">I agree to receive event reminders via email</label>
+          </div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="reg-terms" />
+            <label for="reg-terms">I confirm my details are correct *</label>
+          </div>
+          <div class="error-msg" id="err-terms" style="margin-bottom:10px">You must confirm your details are correct</div>
+          <button class="btn-primary" style="width:100%;padding:12px" onclick="submitRegistration(${e.id})">
+            Confirm Registration
+          </button>
+        </div>`;
+    }
+    showScreen('register');
+  }
+
+  function submitRegistration(id) {
+    let valid = true;
+    const name  = document.getElementById('reg-name').value.trim();
+    const sid   = document.getElementById('reg-id').value.trim();
+    const email = document.getElementById('reg-email').value.trim();
+    const terms = document.getElementById('reg-terms').checked;
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+    show('err-name',  !name);     if (!name)     valid = false;
+    show('err-id',    !sid);      if (!sid)      valid = false;
+    show('err-email', !emailOk);  if (!emailOk)  valid = false;
+    show('err-terms', !terms);    if (!terms)    valid = false;
+    if (!valid) return;
+
+    if (!myRegistered.includes(id)) myRegistered.push(id);
+    const e = events.find(ev => ev.id === id);
+    if (e && e.seats > 0) e.seats--;
+
+    document.getElementById('success-message').textContent =
+      `You're registered for "${e ? e.title : 'this event'}". Confirmation sent to ${email}.`;
+    showScreen('success');
+  }
+
+  // ── Feedback List ─────────────────────────────────────────────────────────
+  function renderFeedbackList() {
+    const attended = [
+      ...events.filter(e => myRegistered.includes(e.id)),
+      ...pastEvents.filter(e => myPast.includes(e.id))
+    ];
+    const container = document.getElementById('feedback-list-content');
+    if (attended.length === 0) {
+      container.innerHTML = '<div class="empty">No attended events yet.</div>';
+      return;
+    }
+    container.innerHTML = attended.map(e => `
+      <div class="list-item" onclick="openFeedback(${e.id})">
+        <div class="icon">${e.icon}</div>
+        <div class="info"><h4>${e.title}</h4><p>${e.date}</p></div>
+        <div>
+          ${ratings[e.id]
+            ? `<span style="color:var(--star);font-size:13px">${'★'.repeat(ratings[e.id].overall)}</span>`
+            : '<span style="font-size:12px;color:var(--blue);font-weight:500">Rate →</span>'}
+        </div>
+      </div>`).join('');
+  }
+
+  // ── Feedback Form ─────────────────────────────────────────────────────────
+  function openFeedback(id) {
+    const e = events.find(ev => ev.id === id) || pastEvents.find(ev => ev.id === id);
+    if (!e) return;
+    const ex = ratings[id] || { overall: 0, content: 0, org: 0, venue: 0, enjoy: '', improve: '', recommend: '' };
+
+    document.getElementById('feedback-form-content').innerHTML = `
+      <div class="event-strip">
+        <div style="font-size:24px">${e.icon}</div>
+        <div><h4>${e.title}</h4><p>${e.date}</p></div>
+      </div>
+      <div class="form-section">
+        <h3>Overall Rating *</h3>
+        <div class="star-row" id="stars-overall" data-val="${ex.overall}">
+          ${buildStars(ex.overall, 'setStars', 5, 'star')}
+        </div>
+        <div class="rating-label" id="lbl-overall">${starLabels[ex.overall] || ''}</div>
+        <div class="error-msg" id="err-stars">Please give an overall rating</div>
+
+        <div style="margin-top:1.25rem">
+          <p style="font-size:13px;color:var(--text-secondary);margin-bottom:10px">Rate specific aspects:</p>
+          ${[['content','Content & Quality'],['org','Organisation'],['venue','Venue & Facilities']].map(([k, lbl]) => `
+            <div class="aspect-row">
+              <span class="name">${lbl}</span>
+              <div class="mini-stars" id="mini-${k}" data-val="${ex[k] || 0}">
+                ${buildStars(ex[k] || 0, `setMini`, 5, 'mini-star', k)}
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>Your Review</h3>
+        <div class="form-group">
+          <label>What did you enjoy most?</label>
+          <textarea id="fb-enjoy" rows="2" placeholder="e.g. The hands-on activities were very helpful...">${ex.enjoy}</textarea>
+        </div>
+        <div class="form-group">
+          <label>What could be improved?</label>
+          <textarea id="fb-improve" rows="2" placeholder="e.g. More time for Q&amp;A would be great...">${ex.improve}</textarea>
+        </div>
+        <div class="form-group">
+          <label>Would you recommend this event?</label>
+          <select id="fb-recommend">
+            <option value="">Select</option>
+            <option ${ex.recommend === 'yes' ? 'selected' : ''}>Yes, definitely</option>
+            <option ${ex.recommend === 'maybe' ? 'selected' : ''}>Maybe</option>
+            <option ${ex.recommend === 'no' ? 'selected' : ''}>No</option>
+          </select>
+        </div>
+        <button class="btn-primary" style="width:100%;padding:12px" onclick="submitFeedback(${id})">
+          Submit Feedback
+        </button>
+      </div>`;
+    showScreen('feedback-form');
+  }
+
+  function buildStars(val, fn, max, cls, key = '') {
+    return Array.from({ length: max }, (_, i) => {
+      const n = i + 1;
+      const filled = val >= n ? ' filled' : '';
+      const arg = key ? `'${key}',${n}` : `${n}`;
+      return `<span class="${cls}${filled}" onclick="${fn}(${arg})">${val >= n ? '★' : '☆'}</span>`;
+    }).join('');
+  }
+
+  function setStars(val) {
+    document.getElementById('stars-overall').setAttribute('data-val', val);
+    document.getElementById('stars-overall').innerHTML = buildStars(val, 'setStars', 5, 'star');
+    document.getElementById('lbl-overall').textContent = starLabels[val];
+    document.getElementById('err-stars').style.display = 'none';
+  }
+
+  function setMini(key, val) {
+    const el = document.getElementById('mini-' + key);
+    el.setAttribute('data-val', val);
+    el.innerHTML = buildStars(val, 'setMini', 5, 'mini-star', key);
+  }
+
+  function submitFeedback(id) {
+    const overall = parseInt(document.getElementById('stars-overall').getAttribute('data-val') || 0);
+    if (!overall) { document.getElementById('err-stars').style.display = 'block'; return; }
+
+    ratings[id] = {
+      overall,
+      content:   parseInt(document.getElementById('mini-content').getAttribute('data-val') || 0),
+      org:       parseInt(document.getElementById('mini-org').getAttribute('data-val') || 0),
+      venue:     parseInt(document.getElementById('mini-venue').getAttribute('data-val') || 0),
+      enjoy:     document.getElementById('fb-enjoy').value,
+      improve:   document.getElementById('fb-improve').value,
+      recommend: document.getElementById('fb-recommend').value,
+    };
+    showToast('Feedback submitted — thank you!');
+    showScreen('feedback-list');
+  }
+
+  // ── My Events ─────────────────────────────────────────────────────────────
+  function renderMyEvents(tab = 'upcoming') {
+    const ids  = tab === 'upcoming' ? myRegistered : myPast;
+    const list = tab === 'upcoming'
+      ? events.filter(e => ids.includes(e.id))
+      : pastEvents.filter(e => ids.includes(e.id));
+    const container = document.getElementById('my-events-content');
+    if (list.length === 0) {
+      container.innerHTML = '<div class="empty">No events here yet.</div>';
+      return;
+    }
+    container.innerHTML = list.map(e => `
+      <div class="list-item" onclick="${tab === 'upcoming' ? 'openEvent(' + e.id + ')' : 'openFeedback(' + e.id + ')'}">
+        <div class="icon">${e.icon}</div>
+        <div class="info"><h4>${e.title}</h4><p>${e.date} · ${e.venue || ''}</p></div>
+        <span class="status-badge ${tab === 'upcoming' ? 's-registered' : 's-pending'}">
+          ${tab === 'upcoming' ? 'Registered' : (ratings[e.id] ? 'Reviewed ✓' : 'Rate')}
+        </span>
+      </div>`).join('');
+  }
+
+  function myEventsTab(tab, btn) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    renderMyEvents(tab);
+  }
+
+  // ── Utilities ─────────────────────────────────────────────────────────────
+  function showScreen(name) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + name).classList.add('active');
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    const map = { home: 0, 'my-events': 1, 'feedback-list': 2 };
+    if (map[name] !== undefined) document.querySelectorAll('.nav-btn')[map[name]].classList.add('active');
+    if (name === 'my-events')     renderMyEvents('upcoming');
+    if (name === 'feedback-list') renderFeedbackList();
+    window.scrollTo(0, 0);
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  function show(id, condition) {
+    document.getElementById(id).style.display = condition ? 'block' : 'none';
+  }
+
+  function cap(str) { return str.charAt(0).toUpperCase() + str.slice(1); }
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  renderEvents();
+</script>
+</body>
+</html>
